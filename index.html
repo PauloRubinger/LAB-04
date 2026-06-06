@@ -699,21 +699,21 @@
             warning: '#ffc107'
         };
 
-        // Função para formatar números em padrão brasileiro
+        // Format numbers in Brazilian format (e.g., 1.234,56)
         function formatBrazilian(value, decimals = 2) {
             const str = value.toFixed(decimals);
             const parts = str.split('.');
             const integerPart = parts[0];
             const decimalPart = parts[1] || '';
             
-            // Adiciona separador de milhares apenas na parte inteira
+            // Adds thousand separator only to the integer part
             const formattedInteger = integerPart.replace(/\B(?=(\d{3})+$)/g, '.');
             
-            // Combina parte inteira e decimal com vírgula
+            // Combines integer and decimal parts with a comma
             return formattedInteger + (decimalPart ? ',' + decimalPart : '');
         }
 
-        // Função para formatar grandes números em milhões
+        // Format numbers in millions with Brazilian format (e.g., 1,2M)
         function formatMillions(value, decimals = 1) {
             const millions = (value / 1000000).toFixed(decimals).replace('.', ',');
             return millions + 'M';
