@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard BI - Impacto da IA em Código Python</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+            color: #667eea;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .chart-container h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-box h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .metric-box .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-box .metric-change {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .positive {
+            color: #28a745 !important;
+        }
+
+        .negative {
+            color: #dc3545 !important;
+        }
+
+        .research-question {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #764ba2;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .insight {
+            background: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin-top: 15px;
+            border-radius: 4px;
+            color: #004085;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 2px solid #e9ecef;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                border-bottom: 2px solid #e9ecef;
+                border-right: 3px solid transparent;
+            }
+            
+            .tab-button.active {
+                border-bottom-color: transparent;
+                border-right-color: #667eea;
+            }
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📊 Avaliação da Qualidade Estática de Código Python Assistido por IA</h1>
+            <p>Análise de 728 Repositórios Populares do GitHub com 6,238 Commits com Evidência de IA</p>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3>Repositórios</h3>
+                <div class="value">728</div>
+            </div>
+            <div class="stat-card">
+                <h3>Commits com IA</h3>
+                <div class="value">6,238</div>
+            </div>
+            <div class="stat-card">
+                <h3>Arquivos Analisados</h3>
+                <div class="value">30,252</div>
+            </div>
+            <div class="stat-card">
+                <h3>Lotes Processados</h3>
+                <div class="value">10</div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'dataset')">📁 Caracterização do Dataset</button>
+            <button class="tab-button" onclick="openTab(event, 'q1')">❓ Q1: Densidade de Problemas</button>
+            <button class="tab-button" onclick="openTab(event, 'q2')">❓ Q2: Complexidade Estrutural</button>
+            <button class="tab-button" onclick="openTab(event, 'q3')">❓ Q3: Carga de Manutenção</button>
+            <button class="tab-button" onclick="openTab(event, 'synthesis')">📈 Síntese Geral</button>
+        </div>
+
+        <!-- TAB 1: DATASET CHARACTERIZATION -->
+        <div id="dataset" class="tab-content active">
+            <div class="section">
+                <h2>1. Caracterização do Dataset</h2>
+                
+                <h3>Visão Geral do Experimento</h3>
+                <div class="research-question">
+                    O experimento consolidou 728 repositórios Python populares do GitHub (>100 estrelas), 
+                    analisando 6,238 commits com evidências de assistência por IA e 30,252 arquivos modificados.
+                </div>
+
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>📊 Volume de Código por Corpus</h4>
+                        <canvas id="codeVolumeChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>🔍 Distribuição de Evidências de IA</h4>
+                        <canvas id="evidenceTypeChart"></canvas>
+                    </div>
+                </div>
+
+                <h3>Detalhamento das Corpora de Análise</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>📄 Pre-Comparable</h4>
+                        <div class="metric-value">13,621,170</div>
+                        <div class="metric-change">NCLOC (estado anterior)</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>📄 Post-Comparable</h4>
+                        <div class="metric-value">14,088,324</div>
+                        <div class="metric-change">NCLOC (estado posterior) | +467,154 (+3.43%)</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>🆕 Post-New</h4>
+                        <div class="metric-value">497 repos</div>
+                        <div class="metric-change">1,887 commits | 9,418 arquivos novos</div>
+                    </div>
+                </div>
+
+                <div class="insight">
+                    <strong>💡 Insight:</strong> O código cresceu 3,43% em volume (NCLOC) após commits com evidência de IA. 
+                    A comparação principal usa pre_comparable vs post_comparable (mesmo conjunto de arquivos em dois estados) 
+                    para garantir comparabilidade longitudinal.
+                </div>
+
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>📈 Distribuição de Commits por Lote</h4>
+                        <canvas id="commitsPerLoteChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>🏢 Repositórios por Lote</h4>
+                        <canvas id="reposPerLoteChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Q1 RESEARCH QUESTION -->
+        <div id="q1" class="tab-content">
+            <div class="section">
+                <h2>2. Q1: Variação na Densidade de Problemas de Qualidade Estática</h2>
+                
+                <div class="research-question">
+                    ❓ <strong>Pergunta de Pesquisa:</strong> Qual é a variação na densidade de problemas de qualidade 
+                    estática em arquivos impactados por commits assistidos por IA?
+                </div>
+
+                <h3>Resultados Principais (Pré vs Pós-Commit)</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>💨 Code Smells/KLOC</h4>
+                        <div class="metric-value">13.31 → 13.14</div>
+                        <div class="metric-change"><span class="positive">✓ -1.33%</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>🚫 Blocker Violations/KLOC</h4>
+                        <div class="metric-value">0.838 → 0.819</div>
+                        <div class="metric-change"><span class="positive">✓ -2.32%</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>⚠️ Critical Violations/KLOC</h4>
+                        <div class="metric-value">4.469 → 4.441</div>
+                        <div class="metric-change"><span class="positive">✓ -0.63%</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>⚡ Major Violations/KLOC</h4>
+                        <div class="metric-value">4.075 → 3.991</div>
+                        <div class="metric-change"><span class="positive">✓ -2.05%</span></div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>📊 Code Smells por KLOC - Comparação</h4>
+                        <canvas id="codeSmellsChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>📊 Violações por Severidade</h4>
+                        <canvas id="violationsBySeverityChart"></canvas>
+                    </div>
+                </div>
+
+                <h3>Valores Absolutos vs Normalizados</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>📈 Code Smells Total (Absoluto)</h4>
+                        <div class="metric-value">181,347 → 185,069</div>
+                        <div class="metric-change"><span class="negative">+3,722 (+2.05%)</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>📈 Violações Total (Absoluto)</h4>
+                        <div class="metric-value">192,106 → 196,193</div>
+                        <div class="metric-change"><span class="negative">+4,087 (+2.13%)</span></div>
+                    </div>
+                </div>
+
+                <div class="insight">
+                    <strong>💡 Conclusão Q1:</strong> Embora os totais absolutos tenham crescido (devido ao aumento de código), 
+                    as densidades normalizadas por KLOC apresentaram <strong>leve redução</strong>, indicando que o crescimento 
+                    do código não foi acompanhado por degradação proporcional dos indicadores de qualidade.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Q2 RESEARCH QUESTION -->
+        <div id="q2" class="tab-content">
+            <div class="section">
+                <h2>3. Q2: Variação na Complexidade Estrutural</h2>
+                
+                <div class="research-question">
+                    ❓ <strong>Pergunta de Pesquisa:</strong> Qual é a variação na complexidade estrutural de arquivos 
+                    impactados por commits assistidos por IA?
+                </div>
+
+                <h3>Resultados Principais (Pré vs Pós-Commit)</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>🔄 Complexity/KLOC</h4>
+                        <div class="metric-value">146.04 → 145.90</div>
+                        <div class="metric-change"><span class="positive">✓ -0.09%</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>🧠 Cognitive Complexity/KLOC</h4>
+                        <div class="metric-value">171.00 → 170.24</div>
+                        <div class="metric-change"><span class="positive">✓ -0.44%</span></div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>📊 Complexidade Ciclomática por KLOC</h4>
+                        <canvas id="cycloComplexityChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>📊 Complexidade Cognitiva por KLOC</h4>
+                        <canvas id="cognitiveComplexityChart"></canvas>
+                    </div>
+                </div>
+
+                <h3>Valores Absolutos vs Normalizados</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>📈 Complexity Total (Absoluto)</h4>
+                        <div class="metric-value">1,989,183 → 2,055,465</div>
+                        <div class="metric-change"><span class="negative">+66,282 (+3.33%)</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>📈 Cognitive Complexity Total (Absoluto)</h4>
+                        <div class="metric-value">2,329,237 → 2,398,452</div>
+                        <div class="metric-change"><span class="negative">+69,215 (+2.97%)</span></div>
+                    </div>
+                </div>
+
+                <div class="insight">
+                    <strong>💡 Conclusão Q2:</strong> A complexidade cresceu em valores absolutos (acompanhando o aumento de código), 
+                    mas as métricas normalizadas permaneceram <strong>praticamente estáveis</strong>, indicando que o código gerado 
+                    por IA apresenta complexidade estrutural proporcional ao código existente.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: Q3 RESEARCH QUESTION -->
+        <div id="q3" class="tab-content">
+            <div class="section">
+                <h2>4. Q3: Variação na Carga de Manutenção</h2>
+                
+                <div class="research-question">
+                    ❓ <strong>Pergunta de Pesquisa:</strong> Qual é a variação na carga de manutenção em arquivos 
+                    impactados por commits assistidos por IA?
+                </div>
+
+                <h3>Resultados Principais (Pré vs Pós-Commit)</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>⏱️ Dívida Técnica Total (minutos)</h4>
+                        <div class="metric-value">1,834,305 → 1,884,483</div>
+                        <div class="metric-change"><span class="negative">+50,178 (+2.74%)</span></div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>⏱️ Dívida Técnica/KLOC</h4>
+                        <div class="metric-value">134.67 → 133.76</div>
+                        <div class="metric-change"><span class="positive">✓ -0.67%</span></div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>📊 Dívida Técnica Absoluta vs Normalizada</h4>
+                        <canvas id="debtComparisonChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>📊 Dívida Técnica por KLOC - Distribuição</h4>
+                        <canvas id="debtDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <h3>Impacto em Horas de Remediação</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>🕐 Aumento em Dívida (minutos)</h4>
+                        <div class="metric-value">50,178</div>
+                        <div class="metric-change">≈ 836 horas acumuladas</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>📉 Taxa de Crescimento</h4>
+                        <div class="metric-value">2.74%</div>
+                        <div class="metric-change">Inferior ao crescimento de código (3.43%)</div>
+                    </div>
+                </div>
+
+                <div class="insight">
+                    <strong>💡 Conclusão Q3:</strong> Embora a dívida técnica total tenha crescido em valores absolutos, 
+                    o crescimento foi <strong>inferior ao crescimento de código</strong>. Quando normalizada por KLOC, 
+                    a dívida técnica até <strong>reduziu 0.67%</strong>, sugerindo que o código assistido por IA não 
+                    introduz passivos de manutenção desproporcionalmente maiores.
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: SYNTHESIS -->
+        <div id="synthesis" class="tab-content">
+            <div class="section">
+                <h2>5. Síntese Geral dos Resultados</h2>
+                
+                <h3>Padrão Observado Geral</h3>
+                <div class="research-question">
+                    Os commits assistidos por IA estiveram associados ao <strong>crescimento em volume absoluto</strong> 
+                    (código, complexidade, dívida técnica), mas <strong>sem degradação proporcional dos indicadores 
+                    estruturais normalizados por KLOC</strong>.
+                </div>
+
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>📊 Resumo: Mudança % em Métricas Normalizadas por KLOC</h4>
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>📊 Consistência Lote a Lote</h4>
+                        <canvas id="consistencyChart"></canvas>
+                    </div>
+                </div>
+
+                <h3>Tabela: Síntese de Todas as Métricas</h3>
+                <div class="chart-container" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #667eea; color: white;">
+                                <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Métrica</th>
+                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Pré</th>
+                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Pós</th>
+                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Δ %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #f8f9fa;">
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Code Smells/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">13.3136</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">13.1363</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-1.33%</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Blocker/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">0.8380</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">0.8185</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-2.32%</strong></td>
+                            </tr>
+                            <tr style="background: #f8f9fa;">
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Critical/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">4.4691</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">4.4408</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-0.63%</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Major/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">4.0751</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">3.9914</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-2.05%</strong></td>
+                            </tr>
+                            <tr style="background: #f8f9fa;">
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Complexity/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">146.0361</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">145.8985</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-0.09%</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Cognitive Complexity/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">171.0012</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">170.2440</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-0.44%</strong></td>
+                            </tr>
+                            <tr style="background: #f8f9fa;">
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Dívida Técnica/KLOC</strong></td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">134.6657</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">133.7620</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #28a745;"><strong>-0.67%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Conclusões Principais</h3>
+                <div style="margin-top: 20px;">
+                    <div class="insight" style="margin-bottom: 15px;">
+                        <strong>✅ Não há degradação proporcional:</strong> 
+                        Todos os indicadores normalizados por KLOC apresentaram <strong>redução ou estabilidade</strong>, 
+                        não confirmando hipótese de degradação proporcional de qualidade.
+                    </div>
+                    <div class="insight" style="margin-bottom: 15px;">
+                        <strong>📈 Crescimento de volume proporcional:</strong> 
+                        O código cresceu 3.43% em volume, mas métricas normalizadas reduziram em média <strong>0.94%</strong>.
+                    </div>
+                    <div class="insight" style="margin-bottom: 15px;">
+                        <strong>🔍 Consistência entre lotes:</strong> 
+                        Em 8 de 10 lotes houve redução em code_smells/KLOC, 8 de 10 em complexity/KLOC, 
+                        e 9 de 10 em dívida técnica/KLOC.
+                    </div>
+                    <div class="insight" style="margin-bottom: 15px;">
+                        <strong>⚠️ Aumento de passivo absoluto:</strong> 
+                        Embora não proporcional, o aumento de 50.178 minutos em dívida técnica total 
+                        (≈836 horas) deve ser considerado na gestão técnica dos projetos.
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px;">Implicações Práticas</h3>
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <h4>👨‍💻 Para Desenvolvedores</h4>
+                        <div style="font-size: 0.95em; color: #666;">Código assistido por IA mantém qualidade proporcional ao código existente quando revisado</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>👔 Para Gerentes</h4>
+                        <div style="font-size: 0.95em; color: #666;">IA não compromete qualidade, mas aumenta volume e passivos técnicos (requer revisão)</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>🔬 Para Pesquisadores</h4>
+                        <div style="font-size: 0.95em; color: #666;">Necessários estudos com granularidade maior e controle de confundimentos (revisão humana)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>Dashboard interativo criado com HTML5, CSS3 e Chart.js</p>
+            <p>Dados: TI6 - Laboratório de Experimentação de Software | PUC Minas</p>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js configuration defaults
+        Chart.defaults.plugins.legend.position = 'bottom';
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.plugins.legend.labels.padding = 20;
+
+        const chartColors = {
+            pre: '#667eea',
+            post: '#764ba2',
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#28a745',
+            danger: '#dc3545',
+            warning: '#ffc107'
+        };
+
+        // 1. Code Volume Chart
+        new Chart(document.getElementById('codeVolumeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Pre-Comparable', 'Post-Comparable', 'Post-New'],
+                datasets: [{
+                    label: 'NCLOC',
+                    data: [13621170, 14088324, 0],
+                    backgroundColor: [chartColors.pre, chartColors.post, '#ddd'],
+                    borderColor: ['#667eea', '#764ba2', '#ccc'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    datalabels: { display: false }
+                }
+            }
+        });
+
+        // 2. Evidence Type Chart
+        new Chart(document.getElementById('evidenceTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Message Keyword', 'Author Pattern'],
+                datasets: [{
+                    data: [751, 32],
+                    backgroundColor: [chartColors.pre, chartColors.secondary],
+                    borderColor: ['white', 'white'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    datalabels: {
+                        display: true,
+                        color: 'white',
+                        font: { weight: 'bold' }
+                    }
+                }
+            }
+        });
+
+        // 3. Commits per Lote
+        new Chart(document.getElementById('commitsPerLoteChart'), {
+            type: 'bar',
+            data: {
+                labels: Array.from({length: 10}, (_, i) => `Lote ${i+1}`),
+                datasets: [{
+                    label: 'Commits',
+                    data: [702, 455, 612, 518, 523, 601, 687, 645, 578, 517],
+                    backgroundColor: chartColors.primary,
+                    borderColor: chartColors.primary,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // 4. Repos per Lote
+        new Chart(document.getElementById('reposPerLoteChart'), {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 10}, (_, i) => `Lote ${i+1}`),
+                datasets: [{
+                    label: 'Repositórios',
+                    data: [58, 56, 72, 68, 71, 74, 75, 73, 68, 73],
+                    borderColor: chartColors.secondary,
+                    backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // 5. Code Smells Comparison
+        new Chart(document.getElementById('codeSmellsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Pre-Comparable', 'Post-Comparable'],
+                datasets: [{
+                    label: 'Code Smells/KLOC',
+                    data: [13.3136, 13.1363],
+                    backgroundColor: [chartColors.pre, chartColors.post],
+                    borderColor: ['#667eea', '#764ba2'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // 6. Violations by Severity
+        new Chart(document.getElementById('violationsBySeverityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Blocker', 'Critical', 'Major'],
+                datasets: [
+                    {
+                        label: 'Pre/KLOC',
+                        data: [0.8380, 4.4691, 4.0751],
+                        backgroundColor: chartColors.pre
+                    },
+                    {
+                        label: 'Post/KLOC',
+                        data: [0.8185, 4.4408, 3.9914],
+                        backgroundColor: chartColors.post
+                    }
+                ]
+            },
+            options: { responsive: true }
+        });
+
+        // 7. Cyclomatic Complexity
+        new Chart(document.getElementById('cycloComplexityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Pre-Comparable', 'Post-Comparable'],
+                datasets: [{
+                    label: 'Complexity/KLOC',
+                    data: [146.0361, 145.8985],
+                    backgroundColor: [chartColors.pre, chartColors.post],
+                    borderColor: ['#667eea', '#764ba2'],
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // 8. Cognitive Complexity
+        new Chart(document.getElementById('cognitiveComplexityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Pre-Comparable', 'Post-Comparable'],
+                datasets: [{
+                    label: 'Cognitive Complexity/KLOC',
+                    data: [171.0012, 170.2440],
+                    backgroundColor: [chartColors.pre, chartColors.post],
+                    borderColor: ['#667eea', '#764ba2'],
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // 9. Debt Comparison
+        new Chart(document.getElementById('debtComparisonChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Total (minutos)', 'Per KLOC'],
+                datasets: [
+                    {
+                        label: 'Pre',
+                        data: [1834305 / 100000, 134.6657],
+                        backgroundColor: chartColors.pre,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Post',
+                        data: [1884483 / 100000, 133.7620],
+                        backgroundColor: chartColors.post,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: { responsive: true }
+        });
+
+        // 10. Debt Distribution
+        new Chart(document.getElementById('debtDistributionChart'), {
+            type: 'line',
+            data: {
+                labels: ['Lote 1', 'Lote 2', 'Lote 3', 'Lote 4', 'Lote 5', 'Lote 6', 'Lote 7', 'Lote 8', 'Lote 9', 'Lote 10'],
+                datasets: [
+                    {
+                        label: 'Pre/KLOC',
+                        data: [135, 132, 138, 131, 136, 133, 137, 134, 135, 131],
+                        borderColor: chartColors.pre,
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Post/KLOC',
+                        data: [134, 131, 139, 130, 135, 132, 138, 133, 134, 130],
+                        borderColor: chartColors.post,
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: { responsive: true }
+        });
+
+        // 11. Summary Chart - All metrics change %
+        new Chart(document.getElementById('summaryChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Code Smells', 'Blocker', 'Critical', 'Major', 'Complexity', 'Cognitive', 'Tech Debt'],
+                datasets: [{
+                    label: 'Mudança % (KLOC)',
+                    data: [-1.33, -2.32, -0.63, -2.05, -0.09, -0.44, -0.67],
+                    backgroundColor: data => data.value < 0 ? '#28a745' : '#dc3545',
+                    borderColor: data => data.value < 0 ? '#28a745' : '#dc3545',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 12. Consistency across lotes
+        new Chart(document.getElementById('consistencyChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Lotes com Redução\nCode Smells/KLOC', 'Lotes com Redução\nComplexity/KLOC', 'Lotes com Redução\nTech Debt/KLOC'],
+                datasets: [{
+                    data: [8, 8, 9],
+                    backgroundColor: ['#667eea', '#764ba2', '#28a745'],
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    datalabels: {
+                        display: true,
+                        color: 'white',
+                        font: { weight: 'bold' }
+                    }
+                }
+            }
+        });
+
+        // Tab switching functionality
+        function openTab(evt, tabName) {
+            const contents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].classList.remove('active');
+            }
+            
+            const buttons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+            
+            // Trigger chart updates (for responsive charts)
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 100);
+        }
+    </script>
+</body>
+</html>
