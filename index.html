@@ -92,7 +92,7 @@
             cursor: pointer;
             font-size: 1em;
             font-weight: 500;
-            color: #666;
+            color: #777;
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
         }
@@ -195,7 +195,7 @@
 
         .metric-box .metric-change {
             font-size: 0.9em;
-            color: #666;
+            color: #777;
             margin-top: 5px;
         }
 
@@ -230,7 +230,7 @@
             background: #f8f9fa;
             padding: 20px;
             text-align: center;
-            color: #666;
+            color: #777;
             border-top: 2px solid #e9ecef;
             font-size: 0.9em;
         }
@@ -334,8 +334,8 @@
                         <canvas id="codeVolumeChart"></canvas>
                     </div>
                     <div class="chart-container">
-                        <h4>🔍 Distribuição de Evidências de IA</h4>
-                        <canvas id="evidenceTypeChart"></canvas>
+                        <h4>🔍 Processo de Filtragem da Amostra</h4>
+                        <canvas id="repositorySelectionChart"></canvas>
                     </div>
                 </div>
 
@@ -572,7 +572,7 @@
                         <canvas id="summaryChart"></canvas>
                     </div>
                     <div class="chart-container">
-                        <h4>📊 Consistência Lote a Lote</h4>
+                        <h4>📊 Consistência Lote a Lote (Lotes com Redução)</h4>
                         <canvas id="consistencyChart"></canvas>
                     </div>
                 </div>
@@ -653,15 +653,15 @@
                 <div class="metric-row">
                     <div class="metric-box">
                         <h4>👨‍💻 Para Desenvolvedores</h4>
-                        <div style="font-size: 0.95em; color: #666;">Código assistido por IA mantém qualidade proporcional ao código existente quando revisado</div>
+                        <div style="font-size: 0.95em; color: #777;">Código assistido por IA mantém qualidade proporcional ao código existente quando revisado</div>
                     </div>
                     <div class="metric-box">
                         <h4>👔 Para Gerentes</h4>
-                        <div style="font-size: 0.95em; color: #666;">IA não compromete qualidade, mas aumenta volume e passivos técnicos (requer revisão)</div>
+                        <div style="font-size: 0.95em; color: #777;">IA não compromete qualidade, mas aumenta volume e passivos técnicos (requer revisão)</div>
                     </div>
                     <div class="metric-box">
                         <h4>🔬 Para Pesquisadores</h4>
-                        <div style="font-size: 0.95em; color: #666;">Necessários estudos com granularidade maior e controle de confundimentos (revisão humana)</div>
+                        <div style="font-size: 0.95em; color: #777;">Necessários estudos com granularidade maior e controle de confundimentos (revisão humana)</div>
                     </div>
                 </div>
             </div>
@@ -770,40 +770,141 @@
             }
         });
 
-        // 2. Evidence Type Chart
-        new Chart(document.getElementById('evidenceTypeChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Message Keyword', 'Author Pattern'],
-                datasets: [{
-                    data: [1122, 27],
-                    backgroundColor: [chartColors.pre, chartColors.secondary],
-                    borderColor: ['white', 'white'],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    datalabels: {
-                        display: true,
-                        color: 'white',
-                        font: { weight: 'bold' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const value = context.parsed;
-                                const percentage = ((value / total) * 100).toFixed(1);
-                                return context.label + ': ' + formatBrazilian(value, 0) + ' (' + percentage + '%)';
-                            }
-                        }
-                    }
+        // 2. Repository Selection Chart (Funnel as Cards)
+        (function() {
+            const container = document.getElementById('repositorySelectionChart').parentElement;
+            
+            const canvas = document.getElementById('repositorySelectionChart');
+            canvas.style.display = 'none';
+            
+            const cardsContainer = document.createElement('div');
+            cardsContainer.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 6px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            `;
+            
+            const stages = [
+                { value: 87275, label: '87.275', desc: 'Repositórios Iniciais', color: '#667eea', icon: '📦' },
+                { value: 1400, label: '1.400', desc: 'Com Evidência de IA', color: '#764ba2', icon: '🤖' },
+                { value: 728, label: '728', desc: 'Comparáveis Válidos', color: '#e74c3c', icon: '✓' }
+            ];
+            
+            stages.forEach((stage, idx) => {
+                // Card
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: linear-gradient(135deg, ${stage.color}15 0%, ${stage.color}08 100%);
+                    border: 2px solid ${stage.color};
+                    border-radius: 12px;
+                    padding: 10px 16px;
+                    width: 100%;
+                    max-width: 320px;
+                    text-align: center;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                `;
+                
+                card.addEventListener('mouseenter', (e) => {
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                });
+                
+                card.addEventListener('mouseleave', (e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                });
+                
+                // Icon
+                const icon = document.createElement('div');
+                icon.style.cssText = `
+                    font-size: 18px;
+                    margin-bottom: 4px;
+                `;
+                icon.textContent = stage.icon;
+                card.appendChild(icon);
+                
+                // Main number
+                const number = document.createElement('div');
+                number.style.cssText = `
+                    font-size: 22px;
+                    font-weight: bold;
+                    color: ${stage.color};
+                    margin-bottom: 2px;
+                    font-family: 'Monaco', 'Courier New', monospace;
+                `;
+                number.textContent = stage.label;
+                card.appendChild(number);
+                
+                // Description
+                const desc = document.createElement('div');
+                desc.style.cssText = `
+                    font-size: 11px;
+                    color: #777;
+                    font-weight: 500;
+                `;
+                desc.textContent = stage.desc;
+                card.appendChild(desc);
+                
+                cardsContainer.appendChild(card);
+                
+                // Arrow and reduction between cards
+                if (idx < stages.length - 1) {
+                    const connector = document.createElement('div');
+                    connector.style.cssText = `
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        margin: 2px 0;
+                    `;
+                    
+                    // Arrow
+                    const arrow = document.createElement('div');
+                    arrow.style.cssText = `
+                        font-size: 12px;
+                        color: #999;
+                        animation: pulse 2s infinite;
+                    `;
+                    arrow.textContent = '↓';
+                    
+                    // Badge with reduction
+                    const badge = document.createElement('div');
+                    const reductions = ['-98,4%', '-48,0%'];
+                    badge.style.cssText = `
+                        background: rgba(200, 100, 100, 0.12);
+                        border: 1px solid #d9534f;
+                        border-radius: 16px;
+                        padding: 3px 8px;
+                        font-size: 10px;
+                        font-weight: 600;
+                        color: #d9534f;
+                        white-space: nowrap;
+                    `;
+                    badge.textContent = reductions[idx];
+                    
+                    connector.appendChild(arrow);
+                    connector.appendChild(badge);
+                    cardsContainer.appendChild(connector);
                 }
-            }
-        });
-
+            });
+            
+            // Add CSS animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.6; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            container.appendChild(cardsContainer);
+        })();   
+        
         // 3. Commits per Lote
         new Chart(document.getElementById('commitsPerLoteChart'), {
             type: 'bar',
