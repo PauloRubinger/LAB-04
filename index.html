@@ -431,6 +431,18 @@
                     </div>
                 </div>
 
+                <h3>Distribuição de Violações por Severidade</h3>
+                <div class="grid">
+                    <div class="chart-container">
+                        <h4>🔴 Violações Pré-Commit</h4>
+                        <canvas id="violationsPreChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>🟢 Violações Pós-Commit</h4>
+                        <canvas id="violationsPostChart"></canvas>
+                    </div>
+                </div>
+
                 <div class="insight">
                     <strong>💡 Conclusão Q1:</strong> Embora os totais absolutos tenham crescido (devido ao aumento de código), 
                     as densidades normalizadas por KLOC apresentaram <strong>leve redução</strong>, indicando que o crescimento 
@@ -676,6 +688,7 @@
 
     <script>
         // Chart.js configuration defaults
+        Chart.register(ChartDataLabels);
         Chart.defaults.plugins.legend.position = 'bottom';
         Chart.defaults.plugins.legend.labels.usePointStyle = true;
         Chart.defaults.plugins.legend.labels.padding = 20;
@@ -922,6 +935,9 @@
                 responsive: true,
                 scales: {
                     y: { beginAtZero: true }
+                },
+                plugins: {
+                    datalabels: { display: false }
                 }
             }
         });
@@ -945,6 +961,9 @@
                 responsive: true,
                 scales: {
                     y: { beginAtZero: true }
+                },
+                plugins: {
+                    datalabels: { display: false }
                 }
             }
         });
@@ -989,6 +1008,7 @@
                     }
                 },
                 plugins: {
+                    datalabels: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1030,6 +1050,7 @@
                     }
                 },
                 plugins: {
+                    datalabels: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1040,6 +1061,124 @@
                 }
             }
         })
+
+        // 6a. Violations Distribution - Pre-Comparable (Doughnut)
+        new Chart(document.getElementById('violationsPreChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Blocker', 'Critical', 'Major', 'Outros (Minor + Info)'],
+                datasets: [{
+                    data: [0.83796, 4.469146, 4.075127, 4.721234],
+                    backgroundColor: ['#dc3545', '#ff6b35', '#ffa500', '#28a745'],
+                    borderColor: ['#ffffff', '#ffffff', '#ffffff', '#ffffff'],
+                    borderWidth: 2,
+                    datalabels: {
+                        color: 'white',
+                        font: { weight: 'bold', size: 12 },
+                        formatter: function(value) {
+                            const total = 0.83796 + 4.469146 + 4.075127 + 4.721234;
+                            const percentage = ((value / total) * 100).toFixed(2);
+                            return percentage + '%';
+                        }
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 12, weight: 'bold' },
+                            padding: 15
+                        }
+                    },
+                    datalabels: {
+                        color: 'white',
+                        font: { weight: 'bold', size: 12 },
+                        anchor: 'center',
+                        align: 'center',
+                        offset: 0,
+                        display: true,
+                        formatter: function(value) {
+                            const total = 0.83796 + 4.469146 + 4.075127 + 4.721234;
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return percentage + '%';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = 0.83796 + 4.469146 + 4.075127 + 4.721234;
+                                const value = context.parsed;
+                                const percentage = ((value / total) * 100).toFixed(2);
+                                return context.label + ': ' + formatBrazilian(value, 4) + '/KLOC (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 6b. Violations Distribution - Post-Comparable (Doughnut)
+        new Chart(document.getElementById('violationsPostChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Blocker', 'Critical', 'Major', 'Outros (Minor + Info)'],
+                datasets: [{
+                    data: [0.818479, 4.440841, 3.99139, 4.675219],
+                    backgroundColor: ['#dc3545', '#ff6b35', '#ffa500', '#28a745'],
+                    borderColor: ['#ffffff', '#ffffff', '#ffffff', '#ffffff'],
+                    borderWidth: 2,
+                    datalabels: {
+                        color: 'white',
+                        font: { weight: 'bold', size: 12 },
+                        formatter: function(value) {
+                            const total = 0.818479 + 4.440841 + 3.99139 + 4.675219;
+                            const percentage = ((value / total) * 100).toFixed(2);
+                            return percentage + '%';
+                        }
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 12, weight: 'bold' },
+                            padding: 15
+                        }
+                    },
+                    datalabels: {
+                        color: 'white',
+                        font: { weight: 'bold', size: 12 },
+                        anchor: 'center',
+                        align: 'center',
+                        offset: 0,
+                        display: true,
+                        formatter: function(value) {
+                            const total = 0.818479 + 4.440841 + 3.99139 + 4.675219;
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return percentage + '%';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = 0.818479 + 4.440841 + 3.99139 + 4.675219;
+                                const value = context.parsed;
+                                const percentage = ((value / total) * 100).toFixed(2);
+                                return context.label + ': ' + formatBrazilian(value, 4) + '/KLOC (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
         // 7. Cyclomatic Complexity
         new Chart(document.getElementById('cycloComplexityChart'), {
@@ -1079,6 +1218,7 @@
                     }
                 },
                 plugins: {
+                    datalabels: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1128,6 +1268,7 @@
                     }
                 },
                 plugins: {
+                    datalabels: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1173,14 +1314,7 @@
                         display: false
                     },
                     datalabels: {
-                        display: true,
-                        color: '#333',
-                        font: { weight: 'bold' },
-                        anchor: 'end',
-                        align: 'top',
-                        formatter: function(value) {
-                            return formatBrazilian(value, 2);
-                        }
+                        display: false
                     },
                     tooltip: {
                         callbacks: {
@@ -1233,6 +1367,7 @@
                     }
                 },
                 plugins: {
+                    datalabels: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1269,6 +1404,7 @@
                     }
                 },
                 plugins: {
+                    datalabels: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -1308,17 +1444,7 @@
                         display: false
                     },
                     datalabels: {
-                        display: true,
-                        color: '#333',
-                        font: { weight: 'bold', size: 12 },
-                        anchor: 'end',
-                        align: 'end',
-                        formatter: function(value, context) {
-                            if (context.datasetIndex === 0) {
-                                return value + '/10';
-                            }
-                            return '';
-                        }
+                        display: false
                     }
                 },
                 scales: {
