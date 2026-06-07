@@ -522,11 +522,11 @@
 
                 <div class="grid">
                     <div class="chart-container">
-                        <h4>📊 Dívida Técnica Absoluta vs Normalizada</h4>
+                        <h4>📊 Dívida Técnica por KLOC</h4>
                         <canvas id="debtComparisonChart"></canvas>
                     </div>
                     <div class="chart-container">
-                        <h4>📊 Dívida Técnica por KLOC - Distribuição</h4>
+                        <h4>📊 Dívida Técnica por KLOC - Distribuição por Lote</h4>
                         <canvas id="debtDistributionChart"></canvas>
                     </div>
                 </div>
@@ -785,7 +785,7 @@
             data: {
                 labels: ['Message Keyword', 'Author Pattern'],
                 datasets: [{
-                    data: [751, 32],
+                    data: [1122, 27],
                     backgroundColor: [chartColors.pre, chartColors.secondary],
                     borderColor: ['white', 'white'],
                     borderWidth: 2
@@ -798,6 +798,16 @@
                         display: true,
                         color: 'white',
                         font: { weight: 'bold' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.parsed;
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': ' + formatBrazilian(value, 0) + ' (' + percentage + '%)';
+                            }
+                        }
                     }
                 }
             }
@@ -810,7 +820,7 @@
                 labels: Array.from({length: 10}, (_, i) => `Lote ${i+1}`),
                 datasets: [{
                     label: 'Commits',
-                    data: [702, 455, 612, 518, 523, 601, 687, 645, 578, 517],
+                    data: [702, 455, 548, 487, 326, 464, 423, 974, 902, 957],
                     backgroundColor: chartColors.primary,
                     borderColor: chartColors.primary,
                     borderWidth: 1
@@ -831,7 +841,7 @@
                 labels: Array.from({length: 10}, (_, i) => `Lote ${i+1}`),
                 datasets: [{
                     label: 'Repositórios',
-                    data: [58, 56, 72, 68, 71, 74, 75, 73, 68, 73],
+                    data: [58, 56, 55, 56, 40, 55, 52, 117, 121, 118],
                     borderColor: chartColors.secondary,
                     backgroundColor: 'rgba(118, 75, 162, 0.1)',
                     tension: 0.3,
@@ -1042,92 +1052,49 @@
             type: 'bar',
             data: {
                 labels: ['Pre-Comparable', 'Post-Comparable'],
-                datasets: [
-                    {
-                        type: 'bar',
-                        label: 'Total (minutos)',
-                        data: [1834305, 1884483],
-                        backgroundColor: [chartColors.pre, chartColors.post],
-                        borderColor: [chartColors.pre, chartColors.post],
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                        order: 2
-                    },
-                    {
-                        type: 'line',
-                        label: 'Per KLOC',
-                        data: [134.6657, 133.7620],
-                        borderColor: ['#ff6b6b'],
-                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                        borderWidth: 3,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#ff6b6b',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        tension: 0.3,
-                        yAxisID: 'y1',
-                        order: 1
-                    }
-                ]
+                datasets: [{
+                    label: 'Dívida Técnica / KLOC (minutos)',
+                    data: [134.6657, 133.7620],
+                    backgroundColor: ['#667eea', '#764ba2'],
+                    borderColor: ['#667eea', '#764ba2'],
+                    borderWidth: 1
+                }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.yAxisID === 'y1') {
-                                    return context.dataset.label + ': ' + formatBrazilian(context.parsed.y, 2);
-                                } else {
-                                    return context.dataset.label + ': ' + formatBrazilian(context.parsed.y, 0);
-                                }
-                            }
-                        }
-                    }
-                },
                 scales: {
                     y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Total (minutos)',
-                            color: chartColors.pre,
-                            font: { weight: 'bold' }
-                        },
+                        beginAtZero: true,
                         ticks: {
-                            color: chartColors.pre,
-                            callback: function(value) {
-                                return formatMillions(value, 1);
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(102, 126, 234, 0.1)'
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Per KLOC (minutos)',
-                            color: '#ff6b6b',
-                            font: { weight: 'bold' }
-                        },
-                        ticks: {
-                            color: '#ff6b6b',
                             callback: function(value) {
                                 return formatBrazilian(value, 0);
                             }
                         },
-                        grid: {
-                            drawOnChartArea: false
+                        title: {
+                            display: true,
+                            text: 'Dívida Técnica / KLOC (minutos)',
+                        },
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#333',
+                        font: { weight: 'bold' },
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: function(value) {
+                            return formatBrazilian(value, 2);
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Dívida Técnica/KLOC: ' + formatBrazilian(context.parsed.y, 4);
+                            }
                         }
                     }
                 }
@@ -1142,7 +1109,7 @@
                 datasets: [
                     {
                         label: 'Pre',
-                        data: [135, 132, 138, 131, 136, 133, 137, 134, 135, 131],
+                        data: [145.0968, 101.537, 135.2234, 108.9334, 105.9003, 161.4109, 134.0317, 118.8163, 154.5597, 137.7614],
                         borderColor: chartColors.pre,
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         tension: 0.3,
@@ -1150,7 +1117,7 @@
                     },
                     {
                         label: 'Post',
-                        data: [134, 131, 139, 130, 135, 132, 138, 133, 134, 130],
+                        data: [144.9398, 100.7418, 135.2721, 108.4752, 105.0176, 160.8013, 134.0063, 118.7478, 152.6658, 135.0628],
                         borderColor: chartColors.post,
                         backgroundColor: 'rgba(118, 75, 162, 0.1)',
                         tension: 0.3,
@@ -1223,28 +1190,61 @@
 
         // 12. Consistency across lotes
         new Chart(document.getElementById('consistencyChart'), {
-            type: 'doughnut',
+            type: 'bar',
             data: {
-                labels: ['Lotes com Redução\nCode Smells/KLOC', 'Lotes com Redução\nComplexity/KLOC', 'Lotes com Redução\nTech Debt/KLOC'],
-                datasets: [{
-                    data: [8, 8, 9],
-                    backgroundColor: ['#667eea', '#764ba2', '#28a745'],
-                    borderColor: 'white',
-                    borderWidth: 2
-                }]
+                labels: ['Code Smells/KLOC', 'Complexidade Ciclomática/KLOC', 'Complexidade Cognitiva./KLOC', 'Dívida Técnica/KLOC'],
+                datasets: [
+                    {
+                        label: 'Lotes com Redução',
+                        data: [8, 8, 8, 9],
+                        backgroundColor: ['#667eea', '#764ba2', '#ffa726', '#28a745'],
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Lotes sem Redução',
+                        data: [2, 2, 2, 1],
+                        backgroundColor: '#e9ecef',
+                        borderRadius: 4
+                    }
+                ]
             },
             options: {
                 responsive: true,
+                indexAxis: 'y',
                 plugins: {
+                    legend: {
+                        display: false
+                    },
                     datalabels: {
                         display: true,
-                        color: 'white',
-                        font: { weight: 'bold' }
+                        color: '#333',
+                        font: { weight: 'bold', size: 12 },
+                        anchor: 'end',
+                        align: 'end',
+                        formatter: function(value, context) {
+                            if (context.datasetIndex === 0) {
+                                return value + '/10';
+                            }
+                            return '';
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 10,
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Lotes'
+                        }
+                    },
+                    y: {
+                        stacked: true
                     }
                 }
             }
         });
-
         // Tab switching functionality
         function openTab(evt, tabName) {
             const contents = document.getElementsByClassName('tab-content');
