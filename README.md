@@ -102,5 +102,5 @@ Este repositório representa a documentação e a apresentação visual do estud
 
 ## Material de Apoio
 
-- [GitHub Pages do dashboard](https://paulorubinger.github.io/LAB-04/)
+- [GitHub Pages do dashboard](https://paulorubinger.github.io/lab-04/)
 - [SonarQube](https://www.sonarsource.com/products/sonarqube/)
