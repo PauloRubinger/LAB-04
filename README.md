@@ -21,7 +21,7 @@ A pesquisa foi conduzida em um repositório específico do estudo, e este reposi
 
 O dashboard interativo com os resultados da pesquisa está disponível em:
 
-- [Dashboard no GitHub Pages](https://paulorubinger.github.io/LAB-04/)
+- [Dashboard no GitHub Pages](https://paulorubinger.github.io/lab-04/)
 
 ---
 
